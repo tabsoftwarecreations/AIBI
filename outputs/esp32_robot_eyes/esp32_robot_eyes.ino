@@ -12,6 +12,12 @@
 #define SCL_PIN 22
 #define TOUCH_PIN 27
 
+// --- NEW SERVO CODE ---
+#include <ESP32Servo.h>
+#define SERVO_PIN 4
+Servo neckServo;
+// ----------------------
+
 const char* WIFI_NAME = "AIBI-ROBOT";
 const char* WIFI_PASSWORD = "aibi12345";
 
@@ -360,7 +366,13 @@ void setup() {
       delay(100);
     }
   }
-
+// --- NEW SERVO SETUP ---
+  // Standard 50Hz for SG90 servos
+  neckServo.setPeriodHertz(50); 
+  // Attach on pin 4, with standard min/max pulse widths
+  neckServo.attach(SERVO_PIN, 500, 2400); 
+  neckServo.write(90); // 90 degrees is looking dead center
+  // -----------------------
   randomSeed(analogRead(34));
   wakeUp();
 
@@ -662,5 +674,9 @@ void loop() {
 
   bool blinking = now < blinkUntil;
   drawEyes(lookX, eyeWidth, eyeHeight, happy && !sleepyHold && !waking, sleepyHold, attention || autoCurious, talking && !sleepyHold, waking && !sleepyHold, blinking && !sleepyHold);
+  // We map that to a servo angle between 60 degrees (left) and 120 degrees (right).
+  int targetAngle = map(lookX, -16, 16, 60, 120); 
+  neckServo.write(targetAngle);
+  // --------------------------
   delay(30);
 }
